@@ -142,8 +142,8 @@ ADD CONSTRAINT FK_Transaction_SenderID FOREIGN KEY (SenderID) REFERENCES Demand.
 ON UPDATE CASCADE
 ON DELETE CASCADE -- transaction must have a sender
 
--- handling cascades too complicated for those since SQL Server only supports 1 cascade for the same referenced key
--- I'd have to use a trigger with INSTEAD OF DELETE, but can't bother with that lol
+-- gerer les cascades trop complique pour ces deux tables
+-- il faudrait utiliser un trigger avec INSTEAD OF DELETE
 ALTER TABLE Demand.[Transaction]
 ADD CONSTRAINT FK_Transaction_ReceiverID FOREIGN KEY (ReceiverID) REFERENCES Demand.Bozo(BozoID)
 

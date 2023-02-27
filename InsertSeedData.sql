@@ -34,7 +34,7 @@ BEGIN
 END
 GO
 
--- Math.max()
+-- equivalent de Math.max() en sql server
 IF OBJECT_ID('dbo.MAX') IS NOT NULL
   DROP FUNCTION dbo.MAX
 GO
@@ -61,6 +61,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des BOZOS terminée.'
 GO
 
 -- offer.enterprise
@@ -75,6 +76,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des ENTREPRISES terminée.'
 GO
 
 -- offer.contract
@@ -91,6 +93,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des CONTRATS terminée.'
 GO
 
 -- offer.production
@@ -106,6 +109,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des PRODUCTIONS terminée.'
 GO
 
 -- offer.product
@@ -122,6 +126,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des PRODUITS terminée.'
 GO
 
 -- offer.productinstance
@@ -136,6 +141,7 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des INSTANCES DE PRODUITS terminée.'
 GO
 
 -- demand.transaction
@@ -153,4 +159,10 @@ BEGIN
       )      
       SET @i = @i + 1
 END
+PRINT 'Insertion des TRANSACTIONS terminée.'
 GO
+
+PRINT 'Nous avons généré ' + CONVERT(varchar(50), SESSION_CONTEXT(N'max')) + ' données par table.'
+
+-- afficher les résultats
+EXEC sp_MSForEachTable 'exec sp_spaceused [?]'
