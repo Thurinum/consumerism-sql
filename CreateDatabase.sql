@@ -5,6 +5,7 @@
 USE master
 GO
 
+-- pour les tests
 DROP DATABASE Consumerism
 GO
 
