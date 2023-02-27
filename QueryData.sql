@@ -11,4 +11,6 @@ GO
 -- █     5 requêtes dont une avec une sous-requête     █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
-SELECT * from Demand.Bozo
+SELECT EnterpriseID, EmployeeID
+from Offer.Contract
+group by EnterpriseID, EmployeeID
