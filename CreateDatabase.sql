@@ -34,7 +34,7 @@ CREATE TABLE Demand.Bozo
 	BozoID	INT			NOT NULL		IDENTITY(1,1),
 	FirstName	NVARCHAR(50)	NOT NULL,
 	LastName	NVARCHAR(50)	NOT NULL,
-	Nickname	VARCHAR(50)		NOT NULL,		-- no weird characters in nickname
+	Nickname	VARCHAR(50)		NULL,			-- no weird characters in nickname
 	Honesty	INT			NOT NULL,		-- CK
 	
 	CONSTRAINT 	PK_Bozo_BozoID 	PRIMARY KEY 	(BozoID)
@@ -140,7 +140,8 @@ ADD CONSTRAINT FK_Transaction_SenderID FOREIGN KEY (SenderID) REFERENCES Demand.
 ON UPDATE CASCADE
 ON DELETE CASCADE -- transaction must have a sender
 
--- handling cascades is too complicated for the two following since SQL Server only supports 1 cascade for the same referenced key
+-- handling cascades too complicated for those since SQL Server only supports 1 cascade for the same referenced key
+-- I'd have to use a trigger with INSTEAD OF DELETE, but can't bother with that lol
 ALTER TABLE Demand.[Transaction]
 ADD CONSTRAINT FK_Transaction_ReceiverID FOREIGN KEY (ReceiverID) REFERENCES Demand.Bozo(BozoID)
 
@@ -155,3 +156,25 @@ GO
 -- █      Création des contraintes UC,DF,CK     █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
+ALTER TABLE Demand.Bozo
+ADD CONSTRAINT UC_Bozo_Nickname UNIQUE (Nickname)
+
+ALTER TABLE Demand.Bozo
+ADD CONSTRAINT DF_Bozo_Honesty DEFAULT (100) FOR Honesty
+
+ALTER TABLE Demand.Bozo
+ADD CONSTRAINT CK_Bozo_Honesty CHECK (Honesty >= 0 AND Honesty <= 100)
+
+ALTER TABLE Offer.Contract
+ADD CONSTRAINT CK_Contract_Importance CHECK (Importance >= 0 AND Importance <= 100)
+
+ALTER TABLE Offer.Production
+ADD CONSTRAINT CK_Production_Quantity CHECK (Quantity >= 0)
+
+ALTER TABLE Offer.Product
+ADD CONSTRAINT CK_Product_Complexity CHECK (Complexity >= 0 AND Complexity <= 100)
+
+ALTER TABLE Offer.Product
+ADD CONSTRAINT CK_Product_BaseValue CHECK (BaseValue >= 0)
+
+GO
