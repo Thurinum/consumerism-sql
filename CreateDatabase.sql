@@ -3,6 +3,8 @@
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 USE master
+GO
+
 DROP DATABASE Consumerism
 GO
 
