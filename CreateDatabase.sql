@@ -5,8 +5,10 @@
 USE master
 GO
 
--- pour les tests
-DROP DATABASE Consumerism
+IF DB_ID('Consumerism') IS NOT NULL
+BEGIN
+	DROP DATABASE Consumerism
+END
 GO
 
 CREATE DATABASE Consumerism
