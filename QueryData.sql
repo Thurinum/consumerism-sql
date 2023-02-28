@@ -41,7 +41,7 @@ HAVING AVG(B.Honesty) > 50
 ORDER BY AVG(B.Honesty) DESC
 GO
 
-SELECT TOP 25 P.Name as 'Product Name', Amount as 'Valeur', Date
+SELECT TOP 25 P.Name as 'Nom du produit', LTRIM(ROUND(Amount, 2)) + ' $' as 'Valeur', Date
 FROM Demand.[Transaction] AS T
 INNER JOIN Offer.ProductInstance AS PI
 ON T.ProductInstanceID = PI.ProductInstanceID
@@ -50,5 +50,5 @@ ON PI.ProductID = P.ProductID
 WHERE PI.ProductID IN (SELECT ProductID
            FROM Offer.Product as P
            WHERE P.IsService = 1
-           AND P.BaseValue > 300000)
+           AND P.BaseValue > 500000)
 ORDER BY Date DESC

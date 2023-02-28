@@ -3078,10 +3078,7 @@ BEGIN
       INSERT INTO Offer.Enterprise
       VALUES
             (
-                  (SELECT TOP 1
-                        Name
-                  FROM @names
-                  ORDER BY NEWID()) + LTRIM(@i),
+                  (SELECT TOP 1 Name FROM @names ORDER BY NEWID()) + LTRIM(@i),
                   DATEADD(WEEK, RAND() * 10000, '2000-01-01')
       )
       SET @i = @i + 1
@@ -3126,7 +3123,7 @@ PRINT 'Insertion des PRODUCTIONS terminée.'
 GO
 
 -- offer.product
-DECLARE @names TABLE (Name VARCHAR)
+DECLARE @names TABLE (Name VARCHAR(69))
 INSERT INTO @names
 VALUES
       ('Lemonade - Natural, 591 Ml'),
@@ -4134,10 +4131,10 @@ DECLARE @i INT = dbo.TABLESIZE(N'Offer.Product')
 DECLARE @max INT = @i + CONVERT(INT, SESSION_CONTEXT(N'max'))
 WHILE @i < @max
 BEGIN
+PRINT CAST(ROUND(RAND() * 1000000, 2) AS MONEY)
       INSERT INTO Offer.Product
-      VALUES
-            (
-                  NAME,
+      VALUES (
+                  (SELECT TOP 1 Name FROM @names ORDER BY NEWID()),
                   (CASE WHEN RAND() < 0.5 THEN 1 ELSE 0 END),
                   RAND() * 1000000,
                   RAND() * 100

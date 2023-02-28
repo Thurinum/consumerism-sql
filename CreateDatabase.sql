@@ -5,6 +5,7 @@
 USE master
 GO
 
+-- for testing
 IF DB_ID('Consumerism') IS NOT NULL
 BEGIN
 	DROP DATABASE Consumerism
@@ -40,8 +41,8 @@ CREATE TABLE Demand.Bozo
 	BozoID	INT			NOT NULL		IDENTITY(1,1),
 	FirstName	NVARCHAR(50)	NOT NULL,
 	LastName	NVARCHAR(50)	NOT NULL,
-	Nickname	VARCHAR(50)		NULL,			-- no weird characters in nickname
-	Honesty	INT			NOT NULL,		-- CK
+	Nickname	VARCHAR(50)		NULL,			-- UC - no weird characters in nickname
+	Honesty	INT			NOT NULL,		-- CK, DF
 	
 	CONSTRAINT 	PK_Bozo_BozoID 	PRIMARY KEY 	(BozoID)
 )
@@ -100,7 +101,7 @@ CREATE TABLE Demand.[Transaction]
 CREATE TABLE Offer.Product
 (
 	ProductID		INT				NOT NULL		IDENTITY(1,1),
-	Name			NVARCHAR(50)		NOT NULL,
+	Name			NVARCHAR(100)		NOT NULL,
 	IsService		BIT				NOT NULL,
 	BaseValue		MONEY				NOT NULL,	
 	Complexity		INT				NOT NULL,		-- CK (>= 0, <= 100)
@@ -166,7 +167,7 @@ ALTER TABLE Demand.Bozo
 ADD CONSTRAINT UC_Bozo_Nickname UNIQUE (Nickname)
 
 ALTER TABLE Demand.Bozo
-ADD CONSTRAINT DF_Bozo_Honesty DEFAULT (100) FOR Honesty
+ADD CONSTRAINT DF_Bozo_Honesty DEFAULT (50) FOR Honesty
 
 ALTER TABLE Demand.Bozo
 ADD CONSTRAINT CK_Bozo_Honesty CHECK (Honesty >= 0 AND Honesty <= 100)
@@ -182,9 +183,6 @@ ADD CONSTRAINT CK_Production_Quantity CHECK (Quantity >= 0)
 
 ALTER TABLE Offer.Product
 ADD CONSTRAINT CK_Product_Complexity CHECK (Complexity >= 0 AND Complexity <= 100)
-
-ALTER TABLE Offer.Product
-ADD CONSTRAINT UC_Product_Name UNIQUE
 
 ALTER TABLE Offer.Product
 ADD CONSTRAINT CK_Product_BaseValue CHECK (BaseValue >= 0)
