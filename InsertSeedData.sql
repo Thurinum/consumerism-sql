@@ -49,16 +49,20 @@ BEGIN
 END
 GO
 
--- seed
+-- obtient un seed unique pour chaque insertion afin de pouvoir reproduire le jeu de données
 IF OBJECT_ID('dbo.SEED') IS NOT NULL
-  DROP FUNCTION dbo.SEED
+      DROP FUNCTION dbo.SEED
 GO
 
 CREATE FUNCTION dbo.SEED()
 RETURNS INT
 AS
 BEGIN
-      RETURN CONVERT(INT, SESSION_CONTEXT(N'seed'))
+      DECLARE @seed INT = CONVERT(INT, SESSION_CONTEXT(N'seed'))
+      DECLARE @newSeed INT = CONVERT(INT, SESSION_CONTEXT(N'seed'))
+      SET @newSeed = @newSeed + 1
+      EXEC sp_set_session_context 'seed', @newSeed
+      RETURN @seed
 END
 GO
 

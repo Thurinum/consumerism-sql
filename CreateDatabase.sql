@@ -145,7 +145,7 @@ ADD CONSTRAINT FK_Transaction_SenderID FOREIGN KEY (SenderID) REFERENCES Demand.
 ON UPDATE CASCADE
 ON DELETE CASCADE -- transaction must have a sender
 
--- gerer les cascades trop complique pour ces deux tables
+-- gerer les cascades est trop complique pour ces deux tables
 -- il faudrait utiliser un trigger avec INSTEAD OF DELETE
 ALTER TABLE Demand.[Transaction]
 ADD CONSTRAINT FK_Transaction_ReceiverID FOREIGN KEY (ReceiverID) REFERENCES Demand.Bozo(BozoID)
@@ -169,6 +169,9 @@ ADD CONSTRAINT DF_Bozo_Honesty DEFAULT (100) FOR Honesty
 
 ALTER TABLE Demand.Bozo
 ADD CONSTRAINT CK_Bozo_Honesty CHECK (Honesty >= 0 AND Honesty <= 100)
+
+ALTER TABLE Offer.Enterprise
+ADD CONSTRAINT UC_Enterprise_Name UNIQUE (Name)
 
 ALTER TABLE Offer.Contract
 ADD CONSTRAINT CK_Contract_Importance CHECK (Importance >= 0 AND Importance <= 100)
