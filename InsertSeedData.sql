@@ -15,6 +15,7 @@ GO
 -- nombre de données à insérer dans chaque table
 EXEC sp_set_session_context 'max', 1000
 EXEC sp_set_session_context 'max_entreprise', 100
+EXEC sp_set_session_context 'seed', 69
 GO
 
 -- obtient le nombre de rangees d'une table
@@ -45,6 +46,19 @@ RETURNS INT
 AS
 BEGIN
       RETURN (SELECT 0.5 * ((@a + @b) + ABS(@a - @b)) )
+END
+GO
+
+-- seed
+IF OBJECT_ID('dbo.SEED') IS NOT NULL
+  DROP FUNCTION dbo.SEED
+GO
+
+CREATE FUNCTION dbo.SEED()
+RETURNS INT
+AS
+BEGIN
+      RETURN CONVERT(INT, SESSION_CONTEXT(N'seed'))
 END
 GO
 
@@ -2087,7 +2101,7 @@ BEGIN
       INSERT INTO Offer.Enterprise
       VALUES (
             (SELECT TOP 1 Name FROM @names ORDER BY NEWID()),
-            DATEADD(DAY, RAND() * 1000, '2000-01-01')
+            DATEADD(WEEK, RAND() * 10000, '2000-01-01')
       )
       SET @i = @i + 1
 END
@@ -2167,16 +2181,22 @@ GO
 -- demand.transaction
 DECLARE @i INT = dbo.TABLESIZE(N'Demand.Transaction')
 DECLARE @max INT = @i + CONVERT(INT, SESSION_CONTEXT(N'max'))
+DECLARE @productInstanceID INT
 WHILE @i < @max
 BEGIN
+	SET @productInstanceID = dbo.MAX(1, RAND() * @max)
+
       INSERT INTO Demand.[Transaction]
-      VALUES
-            (
+      VALUES (
                   DATEADD(DAY, RAND() * 1000, '2000-01-01'),
-                  RAND() * 1000000,
+                  (
+				SELECT P.BaseValue
+				FROM Offer.Product as P
+				WHERE P.ProductID = @productInstanceID
+			) + RAND() * 100, -- "taxes" lol
                   dbo.MAX(1, RAND() * @max),
                   dbo.MAX(1, RAND() * @max),
-                  dbo.MAX(1, RAND() * @max)
+                  @productInstanceID
       )
       SET @i = @i + 1
 END

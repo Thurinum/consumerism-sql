@@ -37,15 +37,16 @@ ON C.EmployeeID = B.BozoID
 INNER JOIN Offer.Enterprise as E
 ON C.EnterpriseID = E.EnterpriseID
 GROUP BY C.EnterpriseID, E.Name
-HAVING AVG(B.Honesty) > 60
+HAVING AVG(B.Honesty) > 50
 ORDER BY AVG(B.Honesty) DESC
 GO
 
-SELECT Amount, Date
+SELECT TOP 25 Amount, Date
 FROM Demand.[Transaction] AS T
 INNER JOIN Offer.ProductInstance AS PI
 ON T.ProductInstanceID = PI.ProductInstanceID
 WHERE PI.ProductID IN (SELECT ProductID
            FROM Offer.Product as P
            WHERE P.IsService = 1
-           AND P.BaseValue > 500000)
+           AND P.BaseValue > 300000)
+ORDER BY Date DESC
