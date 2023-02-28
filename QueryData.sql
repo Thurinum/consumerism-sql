@@ -11,25 +11,6 @@ GO
 -- █     5 requêtes dont une avec une sous-requête     █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
--- Obtient la liste des entreprises 
--- dont les employes ont une honnetete moyenne superieure a 60
--- ============================================================
--- Name           AverageEmployeeHonesty
--- ------------------------------------------------------------
--- Dynabox	      70
--- Yoveo	      67
--- Skiba	      67
--- Lazz	      66
--- Dabshots	      65
--- Meevee	      63
--- Realpoint      62
--- Skinte	      62
--- Aibox	      62
--- Thoughtstorm   61
--- Roomm	      61
--- Zava	      61
--- Geba	      61
-
 SELECT E.Name, AVG(B.Honesty) AS AverageEmployeeHonesty
 FROM Offer.Contract as C
 INNER JOIN Demand.Bozo as B
@@ -41,7 +22,10 @@ HAVING AVG(B.Honesty) > 50
 ORDER BY AVG(B.Honesty) DESC
 GO
 
-SELECT TOP 25 P.Name as 'Nom du produit', LTRIM(ROUND(Amount, 2)) + ' $' as 'Valeur', Date
+-- Obtient le nom, le prix, et la date de transaction des 10 premiers produits (s'il y en a) 
+-- achetés de type service dont la valeur de base (sans taxes et frais de livraison)
+-- est supérieure à 500 000$, triés par ordre décroissant de prix.
+SELECT TOP 10 P.Name as 'Nom du produit', LTRIM(ROUND(Amount, 2)) + ' $' as 'Montant avec taxes', FORMAT(Date, 'yyyy-MM-dd à HH:mm:ss') as 'Date-heure transaction'
 FROM Demand.[Transaction] AS T
 INNER JOIN Offer.ProductInstance AS PI
 ON T.ProductInstanceID = PI.ProductInstanceID
@@ -51,4 +35,4 @@ WHERE PI.ProductID IN (SELECT ProductID
            FROM Offer.Product as P
            WHERE P.IsService = 1
            AND P.BaseValue > 500000)
-ORDER BY Date DESC
+ORDER BY Amount DESC
