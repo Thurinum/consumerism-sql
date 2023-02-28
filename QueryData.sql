@@ -11,16 +11,31 @@ GO
 -- █     5 requêtes dont une avec une sous-requête     █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
+-- DISAPPOINTING SALES
+-- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+-- Obtient le nom et le prix de tous les instances de produit
+-- qui n'ont pas encore ete vendues, triés par ordre alphabétique du nom du produit.
+SELECT 
+      P.Name as 'Nom du produit', 
+      LTRIM(ROUND(P.BaseValue, 2)) + ' $' as 'Prix du produit'
+FROM Offer.ProductInstance AS PI
+INNER JOIN Offer.Product AS P
+ON PI.ProductID = P.ProductID
+WHERE ProductInstanceID NOT IN (
+      SELECT ProductInstanceID FROM Demand.[Transaction]
+)
+ORDER BY P.Name ASC
+
 -- AIR TRAFFIC CONTROL
 -- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
--- Obtient la liste des transactions effectuées entre le 11 septembre 2001 et le 11 mai 2011,
+-- Obtient les transactions effectuées entre le 11 septembre 2001 et le 11 mai 2011,
 -- triées par ordre croissant de date, ainsi que le montant de la transaction avec taxes,
 -- le nom du produit acheté, et le nom du bozo qui a acheté le produit.
 SELECT 
       FORMAT(T.Date, 'yyyy-MM-dd à HH:mm:ss') as 'Date-heure transaction', 
-      LTRIM(ROUND(T.Amount, 2)) + ' $' as 'Montant avec taxes', 
       P.Name as 'Nom du produit', 
-      B.FirstName + ' ' + B.LastName AS 'Nom du bozo'
+      B.FirstName + ' ' + B.LastName AS 'Nom du bozo',
+      LTRIM(ROUND(T.Amount, 2)) + ' $' as 'Montant avec taxes'
 FROM Demand.[Transaction] AS T
 INNER JOIN Offer.ProductInstance AS PI
       ON T.ProductInstanceID = PI.ProductInstanceID
@@ -29,7 +44,7 @@ INNER JOIN Offer.Product AS P
 INNER JOIN Demand.Bozo AS B
       ON T.SenderID = B.BozoID
 WHERE T.Date BETWEEN '2001-09-11' AND '2011-05-11'
-ORDER BY T.Date
+ORDER BY T.Date DESC
 GO
 
 -- PRIORITIES FIRST
