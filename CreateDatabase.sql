@@ -18,16 +18,17 @@ USE Consumerism
 GO
 
 
+
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █          Création d'au moins deux schémas         █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
-
 
 CREATE SCHEMA Offer
 GO
 
 CREATE SCHEMA Demand
 GO
+
 
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -181,6 +182,9 @@ ADD CONSTRAINT CK_Production_Quantity CHECK (Quantity >= 0)
 
 ALTER TABLE Offer.Product
 ADD CONSTRAINT CK_Product_Complexity CHECK (Complexity >= 0 AND Complexity <= 100)
+
+ALTER TABLE Offer.Product
+ADD CONSTRAINT UC_Product_Name UNIQUE
 
 ALTER TABLE Offer.Product
 ADD CONSTRAINT CK_Product_BaseValue CHECK (BaseValue >= 0)
