@@ -3095,7 +3095,7 @@ BEGIN
       INSERT INTO Offer.Contract
       VALUES
             (
-                  'Description ' + LTRIM(@i),
+                  'Contract #' + LTRIM(RAND() * 10000) + '-' + LTRIM(@i),
                   RAND() * 100,
                   dbo.MAX(1, RAND() * @max),
                   dbo.MAX(1, RAND() * @maxEntreprises)
@@ -4131,7 +4131,6 @@ DECLARE @i INT = dbo.TABLESIZE(N'Offer.Product')
 DECLARE @max INT = @i + CONVERT(INT, SESSION_CONTEXT(N'max'))
 WHILE @i < @max
 BEGIN
-PRINT CAST(ROUND(RAND() * 1000000, 2) AS MONEY)
       DECLARE @isProduct BIT = (CASE WHEN RAND() < 0.5 THEN 1 ELSE 0 END)
       INSERT INTO Offer.Product
       VALUES (
@@ -4152,8 +4151,7 @@ DECLARE @max INT = @i + CONVERT(INT, SESSION_CONTEXT(N'max'))
 WHILE @i < @max
 BEGIN
       INSERT INTO Offer.ProductInstance
-      VALUES
-            (
+      VALUES (
                   dbo.MAX(1, RAND() * @max),
                   dbo.MAX(1, RAND() * @max)
       )
@@ -4173,7 +4171,7 @@ BEGIN
       VALUES
             (
                   DATEADD(SECOND, RAND() * 10000, 
-                  DATEADD(DAY, RAND() * 1000, '2000-01-01')),
+                  DATEADD(DAY, RAND() * 9000, '2000-01-01')),
                   (
 				SELECT P.BaseValue
                         FROM Offer.Product as P

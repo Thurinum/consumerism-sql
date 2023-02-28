@@ -11,7 +11,44 @@ GO
 -- █     5 requêtes dont une avec une sous-requête     █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
+-- AIR TRAFFIC CONTROL
+-- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+-- Obtient la liste des transactions effectuées entre le 11 septembre 2001 et le 11 mai 2011,
+-- triées par ordre croissant de date, ainsi que le montant de la transaction avec taxes,
+-- le nom du produit acheté, et le nom du bozo qui a acheté le produit.
+SELECT 
+      FORMAT(T.Date, 'yyyy-MM-dd à HH:mm:ss') as 'Date-heure transaction', 
+      LTRIM(ROUND(T.Amount, 2)) + ' $' as 'Montant avec taxes', 
+      P.Name as 'Nom du produit', 
+      B.FirstName + ' ' + B.LastName AS 'Nom du bozo'
+FROM Demand.[Transaction] AS T
+INNER JOIN Offer.ProductInstance AS PI
+      ON T.ProductInstanceID = PI.ProductInstanceID
+INNER JOIN Offer.Product AS P
+      ON PI.ProductID = P.ProductID
+INNER JOIN Demand.Bozo AS B
+      ON T.SenderID = B.BozoID
+WHERE T.Date BETWEEN '2001-09-11' AND '2011-05-11'
+ORDER BY T.Date
+GO
 
+-- PRIORITIES FIRST
+-- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+-- Obtient la liste des contrats dont l'importance est supérieure à 80,
+-- triés par ordre décroissant de cette importance, ainsi que du bozo qui
+-- est responsable de ce contrat.
+
+-- NOTE: Il est possible qu'il n'y ait aucun contrat dont l'importance est supérieure à 80.
+SELECT 
+      C.[Description] AS 'Nom du contrat', 
+      C.Importance AS 'Importance du contrat',
+      B.FirstName + ' ' + B.LastName AS 'Nom du responsable'
+FROM Offer.Contract AS C
+INNER JOIN Demand.Bozo AS B
+      ON C.EmployeeID = B.BozoID
+WHERE C.Importance > 80
+ORDER BY C.Importance DESC
+GO
 
 -- LE GRAIN DE L'IVRAIE
 -- ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
