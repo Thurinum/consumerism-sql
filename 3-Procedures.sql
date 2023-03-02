@@ -76,13 +76,56 @@ SELECT
             AS 'Est une arnaque'
 FROM Transactions
 ORDER BY [Est une arnaque], Date DESC
+GO
 
 
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Fonction scalaire         █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
- 
+
+IF OBJECT_ID('Offer.EnterprisesForProduct') IS NOT NULL
+      DROP FUNCTION Offer.EnterprisesForProduct
+GO
+
+CREATE FUNCTION Offer.EnterprisesForProduct(@ProductID INT)
+RETURNS INT
+AS
+BEGIN
+      RETURN 
+      (
+            SELECT COUNT(DISTINCT EnterpriseID)
+            FROM Offer.Product as P
+            INNER JOIN Offer.ProductInstance as PI
+                  ON P.ProductID = PI.ProductID
+            INNER JOIN Offer.Production as PR
+                  ON PI.ProductionID = PR.ProductionID
+            INNER JOIN Offer.Contract as C
+                  ON PR.ContractID = C.ContractID
+            WHERE P.ProductID = @ProductID
+      )
+END
+GO
+
+-- Liste de tous les produits et les entreprises qui les fabriquent
+-- SELECT P.ProductID, C.EnterpriseID
+-- FROM Offer.Product as P
+-- INNER JOIN Offer.ProductInstance as PI
+--       ON P.ProductID = PI.ProductID
+-- INNER JOIN Offer.Production as PR
+--       ON PI.ProductionID = PR.ProductionID
+-- INNER JOIN Offer.Contract as C
+--       ON PR.ContractID = C.ContractID
+-- ORDER BY P.ProductID
+-- GO
+
+-- Tests de la fonction scalaire avec resultats attendus
+SELECT 
+      P.ProductID AS 'ID du produit',
+      P.Name AS 'Nom du produit',
+      Offer.EnterprisesForProduct(P.ProductID) AS NbEnterprises
+FROM Offer.Product AS P
+WHERE Offer.EnterprisesForProduct(P.ProductID) > 0
 
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█

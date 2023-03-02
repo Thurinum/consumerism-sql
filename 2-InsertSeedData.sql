@@ -18,7 +18,7 @@ GO
 
 -- obtient le nombre de rangees d'une table
 IF OBJECT_ID('dbo.TABLESIZE') IS NOT NULL
-  DROP FUNCTION dbo.TABLESIZE
+      DROP FUNCTION dbo.TABLESIZE
 GO
 
 CREATE FUNCTION dbo.TABLESIZE(@tableName NVARCHAR(128))
@@ -36,7 +36,7 @@ GO
 
 -- equivalent de Math.max() en sql server
 IF OBJECT_ID('dbo.MAX') IS NOT NULL
-  DROP FUNCTION dbo.MAX
+      DROP FUNCTION dbo.MAX
 GO
 
 CREATE FUNCTION dbo.MAX(@a INT, @b INT)
