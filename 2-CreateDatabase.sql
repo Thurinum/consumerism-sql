@@ -41,7 +41,7 @@ CREATE TABLE Demand.Bozo
 	BozoID	INT			NOT NULL		IDENTITY(1,1),
 	FirstName	NVARCHAR(50)	NOT NULL,
 	LastName	NVARCHAR(50)	NOT NULL,
-	Nickname	VARCHAR(50)		NULL,			-- UC - no weird characters in nickname
+	Nickname	VARCHAR(50)		NOT NULL,		-- UC - no weird characters in nickname
 	Honesty	INT			NOT NULL,		-- CK, DF
 	
 	CONSTRAINT 	PK_Bozo_BozoID 	PRIMARY KEY 	(BozoID)
@@ -147,8 +147,6 @@ ADD CONSTRAINT FK_Transaction_SenderID FOREIGN KEY (SenderID) REFERENCES Demand.
 ON UPDATE CASCADE
 ON DELETE CASCADE -- transaction must have a sender
 
--- gerer les cascades est trop complique pour ces deux tables
--- il faudrait utiliser un trigger avec INSTEAD OF DELETE
 ALTER TABLE Demand.[Transaction]
 ADD CONSTRAINT FK_Transaction_ReceiverID FOREIGN KEY (ReceiverID) REFERENCES Demand.Bozo(BozoID)
 

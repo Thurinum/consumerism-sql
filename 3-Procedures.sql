@@ -134,7 +134,7 @@ INSERT INTO Offer.ProductInstance (ProductID, ProductionID)
 VALUES (1, 1)
 GO
 
-SELECT ProductID AS "Devrait être 1"
+SELECT ProductID AS "ATTENDU: 1 résultat (le produit a été ajouté)"
 FROM Offer.Product
 WHERE ProductID = 1
 GO
@@ -146,7 +146,7 @@ AND Offer.EnterprisesForProduct(ProductID) = 0
 GO
 
 -- Doit avoir échoué car le produit est fabriqué par au moins une entreprise
-SELECT ProductID AS "Devrait être 1"
+SELECT ProductID AS "ATTENDU: 1 résultat (le produit n'a pas été supprimé)"
 FROM Offer.Product
 WHERE ProductID = 1
 GO
@@ -165,7 +165,7 @@ GO
 -- Obtient l'ID du produit ajouté
 DECLARE @ProductID INT = (SELECT SCOPE_IDENTITY())
 
-SELECT ProductID AS 'Devrait être rempli'
+SELECT ProductID AS 'ATTENDU: 1 résultat (le produit a été ajouté)'
 FROM Offer.Product
 WHERE ProductID = @ProductID
 
@@ -175,7 +175,7 @@ WHERE ProductID = @ProductID
 AND Offer.EnterprisesForProduct(ProductID) = 0
 
 -- Doit avoir réussi car le produit n'est fabriqué par aucune entreprise
-SELECT ProductID AS "Devrait être vide"
+SELECT ProductID AS "ATTENDU: 0 résultat (le produit a été supprimé)"
 FROM Offer.Product
 WHERE ProductID = @ProductID
 GO
@@ -226,7 +226,13 @@ EXEC Offer.GetProducts
 	@MinComplexity = 10, 
 	@MaxComplexity = 50, 
 	@MinEnterprises = 1
-	-- @IsService = 0
+GO
+EXEC Offer.GetProducts 
+	@MinValue = 600000, 
+	@MinComplexity = 10, 
+	@MaxComplexity = 50, 
+	@MinEnterprises = 1,
+	@IsService = 1
 GO
 
 
@@ -270,6 +276,68 @@ GO
 
 
 
--- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
--- █         Triggers (2)        █
--- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Trigger (AFTER)        █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Trigger (INSTEAD OF)        █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+-- Lorsqu'un utilisateur est supprimé, on supprime toutes les transactions qui le référencent
+-- (On aurait aussi pu permettre les NULL et mettre à NULL les bons champs, mais bon)
+IF OBJECT_ID('Demand.DeleteUser') IS NOT NULL
+	DROP TRIGGER Demand.DeleteUser
+GO
+
+CREATE TRIGGER Demand.DeleteUser
+ON Demand.Bozo
+INSTEAD OF DELETE
+AS
+BEGIN
+	DELETE FROM Demand.[Transaction]
+	WHERE SenderID IN (SELECT BozoID FROM deleted)
+	OR ReceiverID IN (SELECT BozoID FROM deleted)
+END
+GO
+
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Test du trigger (INSTEAD OF)        █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+-- On ajoute un bozo
+INSERT INTO Demand.Bozo (FirstName, LastName, Nickname, Honesty)
+VALUES ('Théodore', 'L''Heureux', NEWID(), 69)
+
+DECLARE @BozoID INT = SCOPE_IDENTITY()
+
+-- On ajoute une transaction référençant le bozo comme acheteur
+INSERT INTO Demand.[Transaction] (SenderID, ReceiverID, ProductInstanceID, Date, Amount)
+VALUES (@BozoID, 1, 1, GETDATE(), 696969)
+
+DECLARE @FirstTransactionID INT = SCOPE_IDENTITY()
+
+-- On ajoute une transaction référençant le bozo comme vendeur
+INSERT INTO Demand.[Transaction] (SenderID, ReceiverID, ProductInstanceID, Date, Amount)
+VALUES (1, @BozoID, 1, GETDATE(), 696969)
+
+DECLARE @SecondTransactionID INT = SCOPE_IDENTITY()
+
+-- On vérifie que les transactions existent
+SELECT TransactionID AS 'ATTENDU: 2 résultats (les transactions ont été ajoutées)'
+FROM Demand.[Transaction]
+WHERE TransactionID IN (@FirstTransactionID, @SecondTransactionID)
+
+-- On supprime le bozo
+DELETE FROM Demand.Bozo WHERE BozoID = @BozoID
+
+-- On vérifie que les transactions n'existent plus
+SELECT TransactionID AS 'ATTENDU: 0 résultat (les transactions ont été supprimées)'
+FROM Demand.[Transaction]
+WHERE TransactionID IN (@FirstTransactionID, @SecondTransactionID)
+GO
