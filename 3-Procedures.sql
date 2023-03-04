@@ -281,19 +281,17 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 
-
-
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Trigger (INSTEAD OF)        █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 -- Lorsqu'un utilisateur est supprimé, on supprime toutes les transactions qui le référencent
 -- (On aurait aussi pu permettre les NULL et mettre à NULL les bons champs, mais bon)
-IF OBJECT_ID('Demand.DeleteUser') IS NOT NULL
-	DROP TRIGGER Demand.DeleteUser
+IF OBJECT_ID('Demand.OnDeleteBozo') IS NOT NULL
+	DROP TRIGGER Demand.OnDeleteBozo
 GO
 
-CREATE TRIGGER Demand.DeleteUser
+CREATE TRIGGER Demand.OnDeleteBozo
 ON Demand.Bozo
 INSTEAD OF DELETE
 AS
