@@ -209,13 +209,14 @@ BEGIN
             P.Complexity
       FROM Offer.Product AS P
       WHERE
-		P.BaseValue >= @MinValue
-		AND P.BaseValue <= @MaxValue
-		AND P.Complexity >= @MinComplexity
-		AND P.Complexity <= @MaxComplexity
-		AND Offer.EnterprisesForProduct(P.ProductID) >= @MinEnterprises
-		AND Offer.EnterprisesForProduct(P.ProductID) <= @MaxEnterprises
-		AND (@IsService IS NULL OR P.IsService = @IsService)
+		P.BaseValue 
+			BETWEEN @MinValue AND @MaxValue
+		AND P.Complexity 
+			BETWEEN @MinComplexity AND @MaxComplexity
+		AND Offer.EnterprisesForProduct(P.ProductID) 
+			BETWEEN @MinEnterprises AND @MaxEnterprises
+		AND (@IsService 
+			IS NULL OR P.IsService = @IsService)
 END
 GO
 
@@ -229,9 +230,45 @@ EXEC Offer.GetProducts
 GO
 
 
+
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Procédure stockée (intervalle de dates)         █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+IF OBJECT_ID('Demand.GetTransactions') IS NOT NULL
+      DROP PROCEDURE Demand.GetTransactions
+GO
+
+-- Obtient les details de transactions
+CREATE PROCEDURE Demand.GetTransactions
+	@BuyerNameLike VARCHAR(50) = NULL,
+      @MinDate DATETIME = '1900-01-01',
+	@MaxDate DATETIME = '9999-12-31',
+	@MinAmount MONEY = 0,
+	@MaxAmount MONEY = 999999999999.99
+AS
+BEGIN
+	SELECT *
+	FROM Top1000Transactions
+	WHERE
+		TransactionDateTime BETWEEN @MinDate AND @MaxDate
+		AND PriceWithTaxes BETWEEN @MinAmount AND @MaxAmount
+		AND (@BuyerNameLike 
+			IS NULL OR SenderFullName LIKE @BuyerNameLike)
+	ORDER BY TransactionDateTime DESC
+END
+GO
+
+-- Obtient les transactions effectuées par des bozos dont le nom commence par
+-- les lettres A,L,J,M,S,D,C et qui ont eu lieu entre le 1er janvier 2014 et 
+-- le 31 décembre 2018.
+EXEC Demand.GetTransactions
+	@BuyerNameLike = '[A,L,J,M,S,D,C]%',
+	@MinDate = '2014-01-01',
+	@MaxDate = '2018-12-31'
+GO
+
+
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Triggers (2)        █
