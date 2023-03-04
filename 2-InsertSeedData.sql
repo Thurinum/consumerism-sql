@@ -3,6 +3,7 @@
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 USE Consumerism
+SET NOCOUNT ON
 GO
 
 
@@ -2058,7 +2059,8 @@ BEGIN
             (SELECT TOP 1 FirstName FROM @names ORDER BY NEWID()),
             (SELECT TOP 1 LastName FROM @names ORDER BY NEWID()),
             (SELECT TOP 1 Name FROM @nicknames ORDER BY NEWID()) + LTRIM(RAND() * 1000) + LTRIM(@i),
-            RAND() * 100
+            RAND() * 100,
+		RAND() * 1000000
       )
       SET @i = @i + 1
 END

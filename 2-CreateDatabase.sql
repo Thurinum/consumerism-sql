@@ -43,6 +43,7 @@ CREATE TABLE Demand.Bozo
 	LastName	NVARCHAR(50)	NOT NULL,
 	Nickname	VARCHAR(50)		NOT NULL,		-- UC - no weird characters in nickname
 	Honesty	INT			NOT NULL,		-- CK, DF
+	Balance	MONEY			NOT NULL,		
 	
 	CONSTRAINT 	PK_Bozo_BozoID 	PRIMARY KEY 	(BozoID)
 )

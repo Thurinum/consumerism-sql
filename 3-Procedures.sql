@@ -3,6 +3,7 @@
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 USE Consumerism
+SET NOCOUNT ON
 GO
 
 
@@ -64,7 +65,12 @@ WHERE T.Amount > 500000
 ORDER BY T.Date DESC, T.Amount DESC
 GO
 
--- Utilisation de la vue
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Utilisation de la vue         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 SELECT 
       FORMAT(TransactionDateTime, 'dd MMMM yyyy')
             AS Date,
@@ -79,7 +85,7 @@ SELECT
 FROM Top1000Transactions
 GO
 
-
+-------------------------------------------------------------------------------------------------
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Fonction scalaire         █
@@ -115,6 +121,19 @@ GO
 -- █         Test de la fonction scalaire (SELECT)         █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
+-- Obtient les produits et leurs entreprises
+SELECT P.ProductID, C.EnterpriseID
+FROM Offer.Product as P
+INNER JOIN Offer.ProductInstance as PI
+	ON P.ProductID = PI.ProductID
+INNER JOIN Offer.Production as PR
+	ON PI.ProductionID = PR.ProductionID
+INNER JOIN Offer.Contract as C
+	ON PR.ContractID = C.ContractID
+ORDER BY P.ProductID
+GO
+
+-- Obtient le nombre d'entreprises qui fabriquent les produits (comparer)
 SELECT 
       P.ProductID AS 'ID du produit',
       P.Name AS 'Nom du produit',
@@ -180,7 +199,7 @@ FROM Offer.Product
 WHERE ProductID = @ProductID
 GO
 
-
+-------------------------------------------------------------------------------------------------
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Procédure stockée (requête générique)         █
@@ -220,6 +239,8 @@ BEGIN
 END
 GO
 
+-- Éxécution
+-- ▀▀▀▀▀▀▀▀▀
 -- Obtient les produits qui ont une valeur comprise entre 50 000$ et 1000$
 EXEC Offer.GetProducts 
 	@MinValue = 600000, 
@@ -227,6 +248,8 @@ EXEC Offer.GetProducts
 	@MaxComplexity = 50, 
 	@MinEnterprises = 1
 GO
+
+-- Seulement les produits qui sont des services
 EXEC Offer.GetProducts 
 	@MinValue = 600000, 
 	@MinComplexity = 10, 
@@ -265,6 +288,8 @@ BEGIN
 END
 GO
 
+-- Éxécution
+-- ▀▀▀▀▀▀▀▀▀
 -- Obtient les transactions effectuées par des bozos dont le nom commence par
 -- les lettres A,L,J,M,S,D,C et qui ont eu lieu entre le 1er janvier 2014 et 
 -- le 31 décembre 2018.
@@ -274,11 +299,61 @@ EXEC Demand.GetTransactions
 	@MaxDate = '2018-12-31'
 GO
 
-
+-------------------------------------------------------------------------------------------------
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Trigger (AFTER)        █
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+-- Ajuster l'argent des bozos lorsqu'une transaction est effectuée
+IF OBJECT_ID('Demand.OnTransactionCreate') IS NOT NULL
+	DROP TRIGGER Demand.OnTransactionCreate
+GO
+
+CREATE TRIGGER Demand.OnTransactionCreate
+	ON Demand.[Transaction]
+AFTER INSERT
+AS
+BEGIN
+	-- On récupère les données de la transaction
+	DECLARE @SenderID INT = (SELECT SenderID FROM inserted)
+	DECLARE @ReceiverID INT = (SELECT ReceiverID FROM inserted)
+	DECLARE @Solde MONEY = (SELECT Amount FROM inserted)
+
+	-- On met à jour l'argent des bozos 
+	-- (on a ajouté une colonne Balance à la table Bozo)
+	UPDATE Demand.Bozo
+	SET Balance = Balance - @Solde
+	WHERE BozoID = @SenderID
+
+	UPDATE Demand.Bozo
+	SET Balance = Balance + @Solde
+	WHERE BozoID = @ReceiverID
+END
+GO
+
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Test du trigger (AFTER)        █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
+-- On choisit deux bozos
+SELECT BozoID, Balance as "Balance avant transaction"
+FROM Demand.Bozo
+WHERE BozoID IN (1, 2)
+
+-- On effectue une transaction
+INSERT INTO Demand.[Transaction] (SenderID, ReceiverID, ProductInstanceID, Date, Amount)
+VALUES (1, 2, 1, GETDATE(), 100000) -- 100k
+
+-- On vérifie que l'argent a bien été débité du compte du vendeur
+-- et crédité du compte de l'acheteur
+SELECT BozoID, Balance AS "Balance après transaction de 100k"
+FROM Demand.Bozo
+WHERE BozoID IN (1, 2)
+GO
+
 
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
@@ -309,8 +384,8 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 -- On ajoute un bozo
-INSERT INTO Demand.Bozo (FirstName, LastName, Nickname, Honesty)
-VALUES ('Théodore', 'L''Heureux', NEWID(), 69)
+INSERT INTO Demand.Bozo (FirstName, LastName, Nickname, Honesty, Balance)
+VALUES ('Théodore', 'L''Heureux', NEWID(), 69, 690000000)
 
 DECLARE @BozoID INT = SCOPE_IDENTITY()
 
@@ -339,3 +414,7 @@ SELECT TransactionID AS 'ATTENDU: 0 résultat (les transactions ont été suppri
 FROM Demand.[Transaction]
 WHERE TransactionID IN (@FirstTransactionID, @SecondTransactionID)
 GO
+
+     
+
+
