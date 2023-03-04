@@ -4187,5 +4187,9 @@ GO
 
 PRINT 'Nous avons généré ' + CONVERT(varchar(50), SESSION_CONTEXT(N'max')) + ' données par table.'
 
+-- Insert a fraudulent transaction
+INSERT INTO Demand.[Transaction] (Date, SenderID, ReceiverID, ProductInstanceID, Amount)
+VALUES (GETDATE(), 1, 1, 1, 690000.69)
+
 -- afficher les résultats
 EXEC sp_MSForEachTable 'exec sp_spaceused [?]'

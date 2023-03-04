@@ -64,10 +64,6 @@ WHERE T.Amount > 500000
 ORDER BY T.Date DESC, T.Amount DESC
 GO
 
--- Insert a fraudulent transaction
-INSERT INTO Demand.[Transaction] (Date, SenderID, ReceiverID, ProductInstanceID, Amount)
-VALUES (GETDATE(), 1, 1, 1, 690000.69)
-
 -- Utilisation de la vue
 SELECT 
       FORMAT(TransactionDateTime, 'dd MMMM yyyy')
@@ -113,18 +109,6 @@ BEGIN
 END
 GO
 
--- Liste de tous les produits et les entreprises qui les fabriquent
--- SELECT P.ProductID, C.EnterpriseID
--- FROM Offer.Product as P
--- INNER JOIN Offer.ProductInstance as PI
---       ON P.ProductID = PI.ProductID
--- INNER JOIN Offer.Production as PR
---       ON PI.ProductionID = PR.ProductionID
--- INNER JOIN Offer.Contract as C
---       ON PR.ContractID = C.ContractID
--- ORDER BY P.ProductID
--- GO
-
 -- Test de la fonction scalaire (SELECT)
 SELECT 
       P.ProductID AS 'ID du produit',
@@ -132,26 +116,54 @@ SELECT
       Offer.EnterprisesForProduct(P.ProductID) AS NbEnterprises
 FROM Offer.Product AS P
 WHERE Offer.EnterprisesForProduct(P.ProductID) > 0
+GO 
+
+-- Test de la fonction scalaire (DELETE)
+-- Ajoute une instance d'un produit pour qu'il soit fabriqué par au moins une entreprise
+INSERT INTO Offer.ProductInstance (ProductID, ProductionID)
+VALUES (1, 1)
 GO
 
--- Test de la fonction scalaire (UPDATE)
-ALTER TABLE Offer.Product
-ADD Importance FLOAT
+SELECT ProductID AS "Devrait être 1"
+FROM Offer.Product
+WHERE ProductID = 1
 GO
 
-UPDATE Offer.Product
-SET Importance = 
-      (CASE
-            WHEN Offer.EnterprisesForProduct(ProductID) > 1 THEN 1
-            WHEN Offer.EnterprisesForProduct(ProductID) = 1 THEN 0.5
-            ELSE 0
-      END) * Complexity / 100
-WHERE Importance IS NULL
+-- Essaie de supprimer le produit
+DELETE FROM Offer.Product
+WHERE ProductID = 1
+AND Offer.EnterprisesForProduct(ProductID) = 0
 GO
 
-SELECT P.Name, P.Importance
-FROM Offer.Product AS P
+-- Doit avoir échoué car le produit est fabriqué par au moins une entreprise
+SELECT ProductID AS "Devrait être 1"
+FROM Offer.Product
+WHERE ProductID = 1
 GO
+
+-- Ajoute un produit qui n'est fabriqué par aucune entreprise
+INSERT INTO Offer.Product
+VALUES ('Test', 0, 0, 0)
+GO
+
+DECLARE @ProductID INT = (SELECT SCOPE_IDENTITY())
+
+SELECT ProductID AS 'Devrait être rempli'
+FROM Offer.Product
+WHERE ProductID = @ProductID
+
+-- Essaie de supprimer le produit
+DELETE FROM Offer.Product
+WHERE ProductID = @ProductID
+AND Offer.EnterprisesForProduct(ProductID) = 0
+
+-- Doit avoir réussi car le produit n'est fabriqué par aucune entreprise
+SELECT ProductID AS "Devrait être vide"
+FROM Offer.Product
+WHERE ProductID = @ProductID
+GO
+
+
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Procedures stockees (2)         █
