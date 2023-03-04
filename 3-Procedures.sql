@@ -109,7 +109,12 @@ BEGIN
 END
 GO
 
--- Test de la fonction scalaire (SELECT)
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Test de la fonction scalaire (SELECT)         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 SELECT 
       P.ProductID AS 'ID du produit',
       P.Name AS 'Nom du produit',
@@ -118,7 +123,12 @@ FROM Offer.Product AS P
 WHERE Offer.EnterprisesForProduct(P.ProductID) > 0
 GO 
 
--- Test de la fonction scalaire (DELETE)
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Test de la fonction scalaire (DELETE, fails)         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 -- Ajoute une instance d'un produit pour qu'il soit fabriqué par au moins une entreprise
 INSERT INTO Offer.ProductInstance (ProductID, ProductionID)
 VALUES (1, 1)
@@ -141,11 +151,18 @@ FROM Offer.Product
 WHERE ProductID = 1
 GO
 
+
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Test de la fonction scalaire (DELETE, success)         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+
 -- Ajoute un produit qui n'est fabriqué par aucune entreprise
 INSERT INTO Offer.Product
 VALUES ('Test', 0, 0, 0)
 GO
 
+-- Obtient l'ID du produit ajouté
 DECLARE @ProductID INT = (SELECT SCOPE_IDENTITY())
 
 SELECT ProductID AS 'Devrait être rempli'
@@ -165,17 +182,23 @@ GO
 
 
 
--- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
--- █         Procedures stockees (2)         █
--- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Procédure stockée (requête générique)         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
-IF OBJECT_ID('Offer.GetProduct') IS NOT NULL
-      DROP PROCEDURE Offer.GetProduct
+IF OBJECT_ID('Offer.GetProducts') IS NOT NULL
+      DROP PROCEDURE Offer.GetProducts
 GO
 
--- Obtient les details complets d'un produit
-CREATE PROCEDURE Offer.GetProduct
-      @ProductID INT
+-- Obtient les details d'un produit
+CREATE PROCEDURE Offer.GetProducts
+      @MinValue MONEY = 0,
+	@MaxValue MONEY = 999999999999.99,
+	@MinComplexity INT = 0,
+	@MaxComplexity INT = 100,
+	@MinEnterprises INT = 0,
+	@MaxEnterprises INT = 2147483647,
+	@IsService BIT = NULL
 AS
 BEGIN
       SELECT 
@@ -185,11 +208,30 @@ BEGIN
             P.IsService,
             P.Complexity
       FROM Offer.Product AS P
-      WHERE P.ProductID = @ProductID
+      WHERE
+		P.BaseValue >= @MinValue
+		AND P.BaseValue <= @MaxValue
+		AND P.Complexity >= @MinComplexity
+		AND P.Complexity <= @MaxComplexity
+		AND Offer.EnterprisesForProduct(P.ProductID) >= @MinEnterprises
+		AND Offer.EnterprisesForProduct(P.ProductID) <= @MaxEnterprises
+		AND (@IsService IS NULL OR P.IsService = @IsService)
 END
 GO
 
+-- Obtient les produits qui ont une valeur comprise entre 50 000$ et 1000$
+EXEC Offer.GetProducts 
+	@MinValue = 600000, 
+	@MinComplexity = 10, 
+	@MaxComplexity = 50, 
+	@MinEnterprises = 1
+	-- @IsService = 0
+GO
 
+
+-- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
+-- █         Procédure stockée (intervalle de dates)         █
+-- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 -- █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
 -- █         Triggers (2)        █
