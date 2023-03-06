@@ -316,9 +316,13 @@ AFTER INSERT
 AS
 BEGIN
 	-- On récupère les données de la transaction
-	DECLARE @SenderID INT = (SELECT SenderID FROM inserted)
-	DECLARE @ReceiverID INT = (SELECT ReceiverID FROM inserted)
-	DECLARE @Solde MONEY = (SELECT Amount FROM inserted)
+	DECLARE @SenderID INT, @ReceiverID INT, @Solde MONEY
+
+	SELECT 
+		@SenderID = SenderID,
+		@ReceiverID = ReceiverID,
+		@Solde = Amount
+	FROM inserted
 
 	-- On met à jour l'argent des bozos 
 	-- (on a ajouté une colonne Balance à la table Bozo)
