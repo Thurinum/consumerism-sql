@@ -19,48 +19,48 @@ GO
 -- Obtient les details complets de toutes les Top1000Transactions
 CREATE VIEW Top1000Transactions AS
 SELECT TOP 1000
-      T.TransactionID 
-            AS TransactionID,
-      T.Date
-            AS TransactionDateTime, 
-      
-      Sender.BozoID
-            AS SenderID,
-      Sender.FirstName
-            AS SenderFirstName,
-      Sender.LastName
-            AS SenderLastName,
-      Sender.FirstName + ' ' + Sender.LastName
-            AS SenderFullName,
+	T.TransactionID 
+		AS TransactionID,
+	T.Date
+		AS TransactionDateTime, 
+	
+	Sender.BozoID
+		AS SenderID,
+	Sender.FirstName
+		AS SenderFirstName,
+	Sender.LastName
+		AS SenderLastName,
+	Sender.FirstName + ' ' + Sender.LastName
+		AS SenderFullName,
 
-      Receiver.BozoID
-            AS ReceiverID,      
-      Receiver.FirstName
-            AS ReceiverFirstName,
-      Receiver.LastName
-            AS ReceiverLastName,
-      Receiver.FirstName + ' ' + Receiver.LastName
-            AS ReceiverFullName,
+	Receiver.BozoID
+		AS ReceiverID,      
+	Receiver.FirstName
+		AS ReceiverFirstName,
+	Receiver.LastName
+		AS ReceiverLastName,
+	Receiver.FirstName + ' ' + Receiver.LastName
+		AS ReceiverFullName,
 
-      P.Name
-            AS ProductName, 
-      P.BaseValue
-            AS PriceWithoutTaxes,
-      T.Amount
-            AS PriceWithTaxes,
-      P.IsService
-            AS ProductIsService,
-      P.Complexity
-            AS ProductComplexity
+	P.Name
+		AS ProductName, 
+	P.BaseValue
+		AS PriceWithoutTaxes,
+	T.Amount
+		AS PriceWithTaxes,
+	P.IsService
+		AS ProductIsService,
+	P.Complexity
+		AS ProductComplexity
 FROM Demand.[Transaction] AS T
 INNER JOIN Offer.ProductInstance AS PI
-      ON T.ProductInstanceID = PI.ProductInstanceID
+	ON T.ProductInstanceID = PI.ProductInstanceID
 INNER JOIN Offer.Product AS P
-      ON PI.ProductID = P.ProductID
+	ON PI.ProductID = P.ProductID
 INNER JOIN Demand.Bozo AS Sender
-      ON T.SenderID = Sender.BozoID
+	ON T.SenderID = Sender.BozoID
 INNER JOIN Demand.Bozo AS Receiver
-      ON T.ReceiverID = Receiver.BozoID
+	ON T.ReceiverID = Receiver.BozoID
 WHERE T.Amount > 500000
 ORDER BY T.Date DESC, T.Amount DESC
 GO
@@ -72,16 +72,16 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 SELECT 
-      FORMAT(TransactionDateTime, 'dd MMMM yyyy')
-            AS Date,
-      (CASE WHEN ProductIsService = 1 THEN 'Service de ' ELSE '' END) + ProductName
-            AS Produit,
-      SenderFullName
-            AS 'Acheté par',
-      LTRIM(ROUND(PriceWithTaxes, 2)) + ' $'
-            AS 'Prix, taxes incluses',
-      (CASE WHEN SenderID = ReceiverID THEN 'Oui' ELSE 'Non' END)
-            AS 'Est une arnaque'
+	FORMAT(TransactionDateTime, 'dd MMMM yyyy')
+		AS Date,
+	(CASE WHEN ProductIsService = 1 THEN 'Service de ' ELSE '' END) + ProductName
+		AS Produit,
+	SenderFullName
+		AS 'Acheté par',
+	LTRIM(ROUND(PriceWithTaxes, 2)) + ' $'
+		AS 'Prix, taxes incluses',
+	(CASE WHEN SenderID = ReceiverID THEN 'Oui' ELSE 'Non' END)
+		AS 'Est une arnaque'
 FROM Top1000Transactions
 GO
 
@@ -92,7 +92,7 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 IF OBJECT_ID('Offer.EnterprisesForProduct') IS NOT NULL
-      DROP FUNCTION Offer.EnterprisesForProduct
+	DROP FUNCTION Offer.EnterprisesForProduct
 GO
 
 -- Obtient le nombre d'entreprises qui fabriquent un produit
@@ -100,18 +100,18 @@ CREATE FUNCTION Offer.EnterprisesForProduct(@ProductID INT)
 RETURNS INT
 AS
 BEGIN
-      RETURN 
-      (
-            SELECT COUNT(DISTINCT EnterpriseID)
-            FROM Offer.Product as P
-            INNER JOIN Offer.ProductInstance as PI
-                  ON P.ProductID = PI.ProductID
-            INNER JOIN Offer.Production as PR
-                  ON PI.ProductionID = PR.ProductionID
-            INNER JOIN Offer.Contract as C
-                  ON PR.ContractID = C.ContractID
-            WHERE P.ProductID = @ProductID
-      )
+	RETURN 
+	(
+		SELECT COUNT(DISTINCT EnterpriseID)
+		FROM Offer.Product as P
+		INNER JOIN Offer.ProductInstance as PI
+			ON P.ProductID = PI.ProductID
+		INNER JOIN Offer.Production as PR
+			ON PI.ProductionID = PR.ProductionID
+		INNER JOIN Offer.Contract as C
+			ON PR.ContractID = C.ContractID
+		WHERE P.ProductID = @ProductID
+	)
 END
 GO
 
@@ -135,9 +135,9 @@ GO
 
 -- Obtient le nombre d'entreprises qui fabriquent les produits (comparer)
 SELECT 
-      P.ProductID AS 'ID du produit',
-      P.Name AS 'Nom du produit',
-      Offer.EnterprisesForProduct(P.ProductID) AS NbEnterprises
+	P.ProductID AS 'ID du produit',
+	P.Name AS 'Nom du produit',
+	Offer.EnterprisesForProduct(P.ProductID) AS NbEnterprises
 FROM Offer.Product AS P
 WHERE Offer.EnterprisesForProduct(P.ProductID) > 0
 GO 
@@ -206,12 +206,12 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 IF OBJECT_ID('Offer.GetProducts') IS NOT NULL
-      DROP PROCEDURE Offer.GetProducts
+	DROP PROCEDURE Offer.GetProducts
 GO
 
 -- Obtient les details d'un produit
 CREATE PROCEDURE Offer.GetProducts
-      @MinValue MONEY = 0,
+	@MinValue MONEY = 0,
 	@MaxValue MONEY = 999999999999.99,
 	@MinComplexity INT = 0,
 	@MaxComplexity INT = 100,
@@ -220,14 +220,14 @@ CREATE PROCEDURE Offer.GetProducts
 	@IsService BIT = NULL
 AS
 BEGIN
-      SELECT 
-            P.ProductID,
-            P.Name,
-            P.BaseValue,
-            P.IsService,
-            P.Complexity
-      FROM Offer.Product AS P
-      WHERE
+	SELECT 
+		P.ProductID,
+		P.Name,
+		P.BaseValue,
+		P.IsService,
+		P.Complexity
+	FROM Offer.Product AS P
+	WHERE
 		P.BaseValue 
 			BETWEEN @MinValue AND @MaxValue
 		AND P.Complexity 
@@ -265,13 +265,13 @@ GO
 -- █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
 IF OBJECT_ID('Demand.GetTransactions') IS NOT NULL
-      DROP PROCEDURE Demand.GetTransactions
+	DROP PROCEDURE Demand.GetTransactions
 GO
 
 -- Obtient les details de transactions
 CREATE PROCEDURE Demand.GetTransactions
 	@BuyerNameLike VARCHAR(50) = NULL,
-      @MinDate DATETIME = '1900-01-01',
+	@MinDate DATETIME = '1900-01-01',
 	@MaxDate DATETIME = '9999-12-31',
 	@MinAmount MONEY = 0,
 	@MaxAmount MONEY = 999999999999.99
@@ -374,6 +374,9 @@ BEGIN
 	DELETE FROM Demand.[Transaction]
 	WHERE SenderID IN (SELECT BozoID FROM deleted)
 	OR ReceiverID IN (SELECT BozoID FROM deleted)
+
+	DELETE FROM Demand.Bozo
+	WHERE BozoID IN (SELECT BozoID FROM deleted) 
 END
 GO
 
@@ -408,6 +411,11 @@ WHERE TransactionID IN (@FirstTransactionID, @SecondTransactionID)
 
 -- On supprime le bozo
 DELETE FROM Demand.Bozo WHERE BozoID = @BozoID
+
+-- On vérifie que le bozo n'existe plus
+SELECT BozoID AS 'ATTENDU: 0 résultat (le bozo a été supprimé)'
+FROM Demand.Bozo
+WHERE BozoID = @BozoID
 
 -- On vérifie que les transactions n'existent plus
 SELECT TransactionID AS 'ATTENDU: 0 résultat (les transactions ont été supprimées)'
